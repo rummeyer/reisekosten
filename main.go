@@ -10,7 +10,6 @@
 package main
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -19,8 +18,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-gomail/gomail"
-	"github.com/go-pdf/fpdf"
 	"github.com/rickar/cal/v2"
 	"github.com/rickar/cal/v2/de"
 	"golang.org/x/text/language"
@@ -92,163 +89,6 @@ func loadConfig(path string) (*Config, error) {
 	}
 
 	return &cfg, nil
-}
-
-// ---------------------------------------------------------------------------
-// Document Generation Helpers
-// ---------------------------------------------------------------------------
-
-// shortID generates a random alphanumeric ID of the specified length.
-// Used for document reference numbers (Belegnummer).
-func shortID(length int) string {
-	const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-
-	b := make([]byte, length)
-	rand.Read(b)
-
-	for i := range b {
-		b[i] = charset[int(b[i])%len(charset)]
-	}
-
-	return string(b)
-}
-
-// formatDate formats a date as DD.MM.YYYY (German format).
-func formatDate(year int, month time.Month, day int) string {
-	return fmt.Sprintf("%02d.%02d.%d", day, month, year)
-}
-
-// ---------------------------------------------------------------------------
-// Document Content Builders
-// ---------------------------------------------------------------------------
-
-// buildDocumentHeader creates the header section with date, reference number, and title.
-func buildDocumentHeader(year int, month time.Month, dateString, title string) string {
-	var b strings.Builder
-
-	// Right-aligned date and reference number
-	fmt.Fprintf(&b, "                                                               DATUM:   %s\n", dateString)
-	fmt.Fprintf(&b, "                                                               BELEGNR: %s\n", shortID(6))
-	b.WriteString("\n")
-
-	// Document title
-	fmt.Fprintf(&b, "Reisekosten %s %02d/%d\n", title, month, year)
-	b.WriteString("===========================================\n\n")
-
-	return b.String()
-}
-
-// buildCustomerHeader creates the trip info header for a customer.
-func buildCustomerHeader(c Customer) string {
-	var b strings.Builder
-
-	fmt.Fprintf(&b, "%s)\n", c.ID)
-	fmt.Fprintf(&b, "Von: %s\n", c.From)
-	fmt.Fprintf(&b, "Nach: %s\n", c.To)
-	fmt.Fprintf(&b, "Grund: %s\n\n", c.Reason)
-
-	return b.String()
-}
-
-// buildKilometerEntry creates a single mileage reimbursement entry for a given date.
-func buildKilometerEntry(dateString string, distanceKm int) string {
-	var b strings.Builder
-
-	amount := float64(distanceKm) * kmRatePerKm
-	fmt.Fprintf(&b, "Anreise: %s\n", dateString)
-	fmt.Fprintf(&b, "Abreise: %s\n", dateString)
-	fmt.Fprintf(&b, "Fahrkosten (%dkm x 0,30 EUR):%s%.2f EUR\n\n",
-		distanceKm, padding(distanceKm), amount)
-
-	return b.String()
-}
-
-// padding returns spaces to align the amount column based on distance digits.
-func padding(distanceKm int) string {
-	// Base padding for single digit, reduce for each additional digit
-	switch {
-	case distanceKm >= 100:
-		return "           "
-	case distanceKm >= 10:
-		return "            "
-	default:
-		return "             "
-	}
-}
-
-// buildMealAllowanceEntry creates a single meal allowance entry for a given date.
-func buildMealAllowanceEntry(dateString string) string {
-	var b strings.Builder
-
-	fmt.Fprintf(&b, "Anreise: %s, 07:00\n", dateString)
-	fmt.Fprintf(&b, "Abreise: %s, 17:00\n", dateString)
-	b.WriteString("Verpflegungsmehraufwand (8h < 24h):      14,-- EUR\n\n")
-
-	return b.String()
-}
-
-// ---------------------------------------------------------------------------
-// PDF Generation
-// ---------------------------------------------------------------------------
-
-// createPDF generates a PDF document with smart page breaks.
-// Blocks are never split across pages - if a block doesn't fit, a new page is added.
-func createPDF(header string, blocks []string, footer string, filename string) {
-	pdf := fpdf.New("P", "mm", "A4", "")
-	pdf.SetFont("Courier", "", pdfFontSize)
-	pdf.AddPage()
-
-	// Calculate available page height
-	_, pageHeight := pdf.GetPageSize()
-	_, _, _, marginBottom := pdf.GetMargins()
-	maxY := pageHeight - marginBottom
-
-	// Use large width to prevent line wrapping (text uses spaces for alignment)
-	const cellWidth = 300
-
-	// Write header (always fits on first page)
-	pdf.MultiCell(cellWidth, pdfLineHeight, header, "", "", false)
-
-	// Write each block, adding page break if block won't fit
-	for _, block := range blocks {
-		blockHeight := float64(strings.Count(block, "\n")+1) * pdfLineHeight
-
-		if pdf.GetY()+blockHeight > maxY {
-			pdf.AddPage()
-		}
-		pdf.MultiCell(cellWidth, pdfLineHeight, block, "", "", false)
-	}
-
-	// Write footer (total amount)
-	footerHeight := float64(strings.Count(footer, "\n")+1) * pdfLineHeight
-	if pdf.GetY()+footerHeight > maxY {
-		pdf.AddPage()
-	}
-	pdf.MultiCell(cellWidth, pdfLineHeight, footer, "", "", false)
-
-	if err := pdf.OutputFileAndClose(filename); err != nil {
-		panic(err)
-	}
-}
-
-// ---------------------------------------------------------------------------
-// Email
-// ---------------------------------------------------------------------------
-
-// sendEmail sends the generated PDFs via SMTP.
-func sendEmail(cfg *Config, subject string, filenames ...string) error {
-	msg := gomail.NewMessage()
-	msg.SetHeader("From", cfg.Email.From)
-	msg.SetHeader("To", cfg.Email.To)
-	msg.SetHeader("Subject", subject)
-	msg.SetBody("text/html", "Dokumente anbei.<br>")
-
-	for _, f := range filenames {
-		msg.Attach(f)
-	}
-
-	dialer := gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password)
-	return dialer.DialAndSend(msg)
 }
 
 // ---------------------------------------------------------------------------
