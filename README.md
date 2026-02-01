@@ -58,6 +58,7 @@ cp config.example.json config.json
   "customers": [
     {
       "id": "1",
+      "name": "Client Company GmbH",
       "from": "Origin City, Street (Your Company)",
       "to": "Destination City, Street (Client Company)",
       "reason": "Project work",
@@ -92,6 +93,7 @@ Each customer represents a client/destination for business trips:
 | Field | Description |
 |-------|-------------|
 | `id` | Customer identifier (appears in document) |
+| `name` | Customer/client name (used as section header) |
 | `from` | Origin address with company name |
 | `to` | Destination address with client name |
 | `reason` | Purpose of the trip |
@@ -105,6 +107,7 @@ When multiple customers are configured, workdays are distributed equally using r
 "customers": [
   {
     "id": "1",
+    "name": "Client A GmbH",
     "from": "Neuhausen, Amselweg (Your Company GmbH)",
     "to": "Stuttgart, Hauptstr. (Client A GmbH)",
     "reason": "Projektarbeit",
@@ -112,6 +115,7 @@ When multiple customers are configured, workdays are distributed equally using r
   },
   {
     "id": "2",
+    "name": "Client B GmbH",
     "from": "Neuhausen, Amselweg (Your Company GmbH)",
     "to": "Munich, Bahnhofstr. (Client B GmbH)",
     "reason": "Beratung",

@@ -12,6 +12,7 @@
   "customers": [
     {
       "id": "1",
+      "name": "Client Company GmbH",
       "from": "Origin City, Street (Your Company)",
       "to": "Destination City, Street (Client Company)",
       "reason": "Project work",
@@ -19,6 +20,7 @@
     },
     {
       "id": "2",
+      "name": "Another Client GmbH",
       "from": "Origin City, Street (Your Company)",
       "to": "Another City, Street (Another Client)",
       "reason": "Consulting",

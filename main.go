@@ -20,8 +20,6 @@ import (
 
 	"github.com/rickar/cal/v2"
 	"github.com/rickar/cal/v2/de"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 // ---------------------------------------------------------------------------
@@ -60,6 +58,7 @@ type EmailConfig struct {
 // Customer represents a client with trip details.
 type Customer struct {
 	ID       string `json:"id"`
+	Name     string `json:"name"`
 	From     string `json:"from"`
 	To       string `json:"to"`
 	Reason   string `json:"reason"`
@@ -220,10 +219,9 @@ func main() {
 	kmHeader := buildDocumentHeader(year, month, lastDateString, "Kilometergelderstattung")
 	verpHeader := buildDocumentHeader(year, month, lastDateString, "Verpflegungsmehraufwand")
 
-	// Build document footers (totals in German number format)
-	printer := message.NewPrinter(language.German)
-	kmFooter := printer.Sprintf("GESAMTBETRAG: %.2f EUR\n", totalKmCost)
-	verpFooter := printer.Sprintf("GESAMTBETRAG: %.2f EUR\n", verpflegungRate*float64(totalWorkdays))
+	// Build document footers
+	kmFooter := buildDocumentFooter(totalKmCost)
+	verpFooter := buildDocumentFooter(verpflegungRate * float64(totalWorkdays))
 
 	// Generate PDFs
 	kmFilename := fmt.Sprintf("%02d_%d_Reisekosten_Kilometergelderstattung.pdf", month, year)
