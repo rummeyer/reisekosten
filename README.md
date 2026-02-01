@@ -1,5 +1,8 @@
 # Reisekosten
 
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](CHANGELOG.md)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
 
 ## What It Does
@@ -31,6 +34,9 @@ go build -o reisekosten
 # Generate for specific month
 ./reisekosten 2/2026
 ./reisekosten 12/2025
+
+# Show version
+./reisekosten --version
 ```
 
 ## Configuration
@@ -139,6 +145,10 @@ The following dates are automatically excluded:
 Generated PDF filenames follow this pattern:
 - `MM_YYYY_Reisekosten_Kilometergelderstattung.pdf`
 - `MM_YYYY_Reisekosten_Verpflegungsmehraufwand.pdf`
+
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 

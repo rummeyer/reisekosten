@@ -27,6 +27,9 @@ import (
 // ---------------------------------------------------------------------------
 
 const (
+	// Version
+	version = "1.2.0"
+
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
 	verpflegungRate = 14.0 // 8h < 24h meal allowance
@@ -161,6 +164,12 @@ func daysInMonth(year int, month time.Month) int {
 }
 
 func main() {
+	// Handle --version flag
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
+		fmt.Printf("reisekosten v%s\n", version)
+		return
+	}
+
 	// Load configuration
 	cfg, err := loadConfig("config.json")
 	if err != nil {
