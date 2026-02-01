@@ -1,0 +1,28 @@
+{
+  "smtp": {
+    "host": "smtp.example.com",
+    "port": 587,
+    "username": "your-smtp-username",
+    "password": "your-smtp-password"
+  },
+  "email": {
+    "from": "sender@example.com",
+    "to": "recipient@example.com"
+  },
+  "customers": [
+    {
+      "id": "1",
+      "from": "Origin City, Street (Your Company)",
+      "to": "Destination City, Street (Client Company)",
+      "reason": "Project work",
+      "distance": 50
+    },
+    {
+      "id": "2",
+      "from": "Origin City, Street (Your Company)",
+      "to": "Another City, Street (Another Client)",
+      "reason": "Consulting",
+      "distance": 35
+    }
+  ]
+}

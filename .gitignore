@@ -1,0 +1,13 @@
+# Credentials
+config.json
+
+# Binary
+reisekosten
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# OS files
+.DS_Store
