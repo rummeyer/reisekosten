@@ -1,6 +1,6 @@
 # Reisekosten
 
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
@@ -172,8 +172,11 @@ With 20 workdays and 2 customers, each customer gets 10 days. Mileage is calcula
 The following dates are automatically excluded:
 - Weekends (Saturday, Sunday)
 - German public holidays (based on configured province)
-- December 24
-- December 27-31
+- Christmas/New Year week off (when `christmasWeekOff` is `true`, the default):
+  - Christmas Eve (December 24)
+  - Days between Christmas and New Year (December 27-31)
+
+  This reflects the common practice in Germany where many businesses close or employees take time off during this period. December 25-26 are already public holidays (Weihnachten). Set `christmasWeekOff` to `false` if you work during these days and only want public holidays excluded.
 
 ## Output
 
