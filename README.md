@@ -13,7 +13,7 @@ Generates two PDF documents per month:
 - **Verpflegungsmehraufwand** - Meal allowance (€14.00 for 8h+ trips)
 
 The tool automatically:
-1. Calculates workdays for the specified month (excluding weekends and German holidays for Baden-Württemberg)
+1. Calculates workdays for the specified month (excluding weekends and German holidays for your configured province)
 2. Distributes workdays equally among configured customers (round-robin)
 3. Generates formatted PDF documents with proper page breaks
 4. Sends the PDFs via email
@@ -68,7 +68,8 @@ cp config.example.json config.json
       "from": "Origin City, Street (Your Company)",
       "to": "Destination City, Street (Client Company)",
       "reason": "Project work",
-      "distance": 50
+      "distance": 50,
+      "province": "BW"
     }
   ]
 }
@@ -104,6 +105,32 @@ Each customer represents a client/destination for business trips:
 | `to` | Destination address with client name |
 | `reason` | Purpose of the trip |
 | `distance` | One-way distance in kilometers (used for mileage calculation) |
+| `province` | German state code for holiday calculation (see below) |
+
+#### Province Codes (Bundesland)
+
+Each customer can have a different province for holiday calculations. Use the two-letter abbreviation:
+
+| Code | State (German)           | State (English)              |
+|------|--------------------------|------------------------------|
+| BW   | Baden-Württemberg        | Baden-Württemberg            |
+| BY   | Bayern                   | Bavaria                      |
+| BE   | Berlin                   | Berlin                       |
+| BB   | Brandenburg              | Brandenburg                  |
+| HB   | Bremen                   | Bremen                       |
+| HH   | Hamburg                  | Hamburg                      |
+| HE   | Hessen                   | Hesse                        |
+| MV   | Mecklenburg-Vorpommern   | Mecklenburg-Western Pomerania|
+| NI   | Niedersachsen            | Lower Saxony                 |
+| NW   | Nordrhein-Westfalen      | North Rhine-Westphalia       |
+| RP   | Rheinland-Pfalz          | Rhineland-Palatinate         |
+| SL   | Saarland                 | Saarland                     |
+| SN   | Sachsen                  | Saxony                       |
+| ST   | Sachsen-Anhalt           | Saxony-Anhalt                |
+| SH   | Schleswig-Holstein       | Schleswig-Holstein           |
+| TH   | Thüringen                | Thuringia                    |
+
+If omitted or invalid, defaults to `BW` (Baden-Württemberg).
 
 ### Multiple Customers
 
@@ -117,7 +144,8 @@ When multiple customers are configured, workdays are distributed equally using r
     "from": "Neuhausen, Amselweg (Your Company GmbH)",
     "to": "Stuttgart, Hauptstr. (Client A GmbH)",
     "reason": "Projektarbeit",
-    "distance": 42
+    "distance": 42,
+    "province": "BW"
   },
   {
     "id": "2",
@@ -125,7 +153,8 @@ When multiple customers are configured, workdays are distributed equally using r
     "from": "Neuhausen, Amselweg (Your Company GmbH)",
     "to": "Munich, Bahnhofstr. (Client B GmbH)",
     "reason": "Beratung",
-    "distance": 120
+    "distance": 120,
+    "province": "BY"
   }
 ]
 ```
@@ -136,7 +165,7 @@ With 20 workdays and 2 customers, each customer gets 10 days. Mileage is calcula
 
 The following dates are automatically excluded:
 - Weekends (Saturday, Sunday)
-- German public holidays (Baden-Württemberg)
+- German public holidays (based on configured province)
 - December 24
 - December 27-31
 

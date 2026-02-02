@@ -66,6 +66,7 @@ type Customer struct {
 	To       string `json:"to"`
 	Reason   string `json:"reason"`
 	Distance int    `json:"distance"` // one-way distance in km
+	Province string `json:"province"` // German state abbreviation (e.g., "BW", "BY")
 }
 
 type Config struct {
@@ -97,13 +98,48 @@ func loadConfig(path string) (*Config, error) {
 // Business Calendar
 // ---------------------------------------------------------------------------
 
-// newBusinessCalendar creates a calendar with German (Baden-Württemberg) holidays.
-func newBusinessCalendar() *cal.BusinessCalendar {
+// provinceHolidays maps German state abbreviations to their holiday slices.
+var provinceHolidays = map[string][]*cal.Holiday{
+	"BW": de.HolidaysBW, // Baden-Württemberg
+	"BY": de.HolidaysBY, // Bayern (Bavaria)
+	"BE": de.HolidaysBE, // Berlin
+	"BB": de.HolidaysBB, // Brandenburg
+	"HB": de.HolidaysHB, // Bremen
+	"HH": de.HolidaysHH, // Hamburg
+	"HE": de.HolidaysHE, // Hessen (Hesse)
+	"MV": de.HolidaysMV, // Mecklenburg-Vorpommern
+	"NI": de.HolidaysNI, // Niedersachsen (Lower Saxony)
+	"NW": de.HolidaysNW, // Nordrhein-Westfalen (North Rhine-Westphalia)
+	"RP": de.HolidaysRP, // Rheinland-Pfalz (Rhineland-Palatinate)
+	"SL": de.HolidaysSL, // Saarland
+	"SN": de.HolidaysSN, // Sachsen (Saxony)
+	"ST": de.HolidaysST, // Sachsen-Anhalt (Saxony-Anhalt)
+	"SH": de.HolidaysSH, // Schleswig-Holstein
+	"TH": de.HolidaysTH, // Thüringen (Thuringia)
+}
+
+// newBusinessCalendar creates a calendar with German holidays for the given province.
+func newBusinessCalendar(province string) *cal.BusinessCalendar {
 	c := cal.NewBusinessCalendar()
 	c.Name = "Rummeyer Consulting GmbH"
 	c.Description = "Default company calendar"
-	c.AddHoliday(de.HolidaysBW...)
+
+	holidays, ok := provinceHolidays[province]
+	if !ok {
+		// Default to Baden-Württemberg if invalid province
+		holidays = de.HolidaysBW
+	}
+	c.AddHoliday(holidays...)
 	return c
+}
+
+// getCustomerCalendars creates a calendar for each customer based on their province.
+func getCustomerCalendars(customers []Customer) []*cal.BusinessCalendar {
+	calendars := make([]*cal.BusinessCalendar, len(customers))
+	for i, c := range customers {
+		calendars[i] = newBusinessCalendar(c.Province)
+	}
+	return calendars
 }
 
 // isWorkday checks if a date is a valid workday for expense reporting.
@@ -122,23 +158,6 @@ func isWorkday(c *cal.BusinessCalendar, date time.Time) bool {
 	}
 
 	return true
-}
-
-// ---------------------------------------------------------------------------
-// Day Distribution
-// ---------------------------------------------------------------------------
-
-// distributeWorkdays distributes workday dates equally among customers (round-robin).
-// Returns a map of customer index to their assigned date strings.
-func distributeWorkdays(workdays []string, numCustomers int) map[int][]string {
-	result := make(map[int][]string, numCustomers)
-
-	for i, date := range workdays {
-		customerIdx := i % numCustomers
-		result[customerIdx] = append(result[customerIdx], date)
-	}
-
-	return result
 }
 
 // ---------------------------------------------------------------------------
@@ -176,30 +195,33 @@ func main() {
 		panic(err)
 	}
 
-	// Initialize calendar and parse target month
-	calendar := newBusinessCalendar()
+	// Initialize calendars per customer and parse target month
+	calendars := getCustomerCalendars(cfg.Customers)
 	year, month := parseMonthYear()
 
-	// Collect all workdays in the month
+	// Distribute workdays among customers (round-robin, respecting each customer's holidays)
 	numDays := daysInMonth(year, month)
-	workdays := make([]string, 0, numDays)
-
+	customerDays := make(map[int][]string, len(cfg.Customers))
+	customerIdx := 0
 	var lastDateString string
+	totalWorkdays := 0
+
 	for day := 1; day <= numDays; day++ {
 		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
-		if isWorkday(calendar, date) {
-			lastDateString = formatDate(year, month, day)
-			workdays = append(workdays, lastDateString)
+		// Check if workday for current customer's province
+		if isWorkday(calendars[customerIdx], date) {
+			dateString := formatDate(year, month, day)
+			customerDays[customerIdx] = append(customerDays[customerIdx], dateString)
+			lastDateString = dateString
+			totalWorkdays++
+			customerIdx = (customerIdx + 1) % len(cfg.Customers)
 		}
 	}
 
-	// Distribute workdays equally among customers
-	customerDays := distributeWorkdays(workdays, len(cfg.Customers))
-
 	// Build document blocks for each customer
-	kmBlocks := make([]string, 0, len(workdays)+len(cfg.Customers))
-	verpBlocks := make([]string, 0, len(workdays)+len(cfg.Customers))
+	kmBlocks := make([]string, 0, totalWorkdays+len(cfg.Customers))
+	verpBlocks := make([]string, 0, totalWorkdays+len(cfg.Customers))
 	var totalKmCost float64
 
 	for i, customer := range cfg.Customers {
@@ -221,8 +243,6 @@ func main() {
 		// Accumulate km cost for this customer
 		totalKmCost += float64(len(days)) * float64(customer.Distance) * kmRatePerKm
 	}
-
-	totalWorkdays := len(workdays)
 
 	// Build document headers
 	kmHeader := buildDocumentHeader(year, month, lastDateString, "Kilometergelderstattung")
