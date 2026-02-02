@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -82,8 +83,34 @@ func (c *Config) ChristmasWeekOffEnabled() bool {
 	return c.ChristmasWeekOff == nil || *c.ChristmasWeekOff
 }
 
+// findConfigFile searches for the config file in the current directory first,
+// then in the directory of the running executable.
+func findConfigFile(filename string) (string, error) {
+	// Try current directory first
+	if _, err := os.Stat(filename); err == nil {
+		return filename, nil
+	}
+
+	// Try executable directory
+	exePath, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Dir(exePath)
+		exeConfigPath := filepath.Join(exeDir, filename)
+		if _, err := os.Stat(exeConfigPath); err == nil {
+			return exeConfigPath, nil
+		}
+	}
+
+	return "", fmt.Errorf("config file %q not found in current directory or executable directory", filename)
+}
+
 // loadConfig reads and parses the JSON configuration file.
-func loadConfig(path string) (*Config, error) {
+func loadConfig(filename string) (*Config, error) {
+	path, err := findConfigFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
