@@ -1,6 +1,6 @@
 # Reisekosten
 
-[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.7.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
@@ -35,6 +35,10 @@ go build -o reisekosten
 ./reisekosten 2/2026
 ./reisekosten 12/2025
 
+# Use custom config file
+./reisekosten --config /path/to/config.json
+./reisekosten --config /path/to/config.json 2/2026
+
 # Show version
 ./reisekosten --version
 ```
@@ -45,6 +49,18 @@ Copy `config.example.json` to `config.json` and fill in your details:
 
 ```bash
 cp config.example.json config.json
+```
+
+### Config File Search Path
+
+By default, the tool searches for `config.json` in the following order:
+1. Current working directory
+2. Directory containing the executable
+
+Use `--config` to specify a custom path and skip the search:
+
+```bash
+./reisekosten --config /path/to/my-config.json
 ```
 
 ### Configuration File Structure

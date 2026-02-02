@@ -6,7 +6,7 @@
 // Workdays are distributed equally among configured customers.
 // The documents are automatically emailed and then deleted locally.
 //
-// Usage: reisekosten [M/YYYY]
+// Usage: reisekosten [--config path] [M/YYYY]
 package main
 
 import (
@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version
-	version = "1.6.0"
+	version = "1.7.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
@@ -105,10 +105,19 @@ func findConfigFile(filename string) (string, error) {
 }
 
 // loadConfig reads and parses the JSON configuration file.
-func loadConfig(filename string) (*Config, error) {
-	path, err := findConfigFile(filename)
-	if err != nil {
-		return nil, err
+// If configPath is non-empty, it uses that path directly.
+// Otherwise, it searches for the file in the current directory and executable directory.
+func loadConfig(filename, configPath string) (*Config, error) {
+	var path string
+	var err error
+
+	if configPath != "" {
+		path = configPath
+	} else {
+		path, err = findConfigFile(filename)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	data, err := os.ReadFile(path)
@@ -198,17 +207,34 @@ func isWorkday(c *cal.BusinessCalendar, date time.Time, christmasWeekOff bool) b
 // Main
 // ---------------------------------------------------------------------------
 
-// parseMonthYear extracts month and year from command line args or uses current date.
-func parseMonthYear() (int, time.Month) {
-	if len(os.Args) > 1 && monthArgRegex.MatchString(os.Args[1]) {
-		parts := strings.Split(os.Args[1], "/")
-		year, _ := strconv.Atoi(parts[1])
-		month, _ := strconv.Atoi(parts[0])
-		return year, time.Month(month)
+// parseArgs parses command line arguments and returns config path, year, and month.
+func parseArgs() (configPath string, year int, month time.Month) {
+	args := os.Args[1:]
+
+	// Parse --config flag
+	for i := 0; i < len(args); i++ {
+		if args[i] == "--config" && i+1 < len(args) {
+			configPath = args[i+1]
+			// Remove --config and its value from args
+			args = append(args[:i], args[i+2:]...)
+			break
+		}
 	}
 
-	year, month, _ := time.Now().Date()
-	return year, month
+	// Parse month/year from remaining args
+	for _, arg := range args {
+		if monthArgRegex.MatchString(arg) {
+			parts := strings.Split(arg, "/")
+			year, _ = strconv.Atoi(parts[1])
+			m, _ := strconv.Atoi(parts[0])
+			month = time.Month(m)
+			return
+		}
+	}
+
+	// Default to current date
+	year, month, _ = time.Now().Date()
+	return
 }
 
 // daysInMonth returns the number of days in the given month.
@@ -218,20 +244,24 @@ func daysInMonth(year int, month time.Month) int {
 
 func main() {
 	// Handle --version flag
-	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
-		fmt.Printf("reisekosten v%s\n", version)
-		return
+	for _, arg := range os.Args[1:] {
+		if arg == "--version" || arg == "-v" {
+			fmt.Printf("reisekosten v%s\n", version)
+			return
+		}
 	}
 
+	// Parse command line arguments
+	configPath, year, month := parseArgs()
+
 	// Load configuration
-	cfg, err := loadConfig("config.json")
+	cfg, err := loadConfig("config.json", configPath)
 	if err != nil {
 		panic(err)
 	}
 
-	// Initialize calendars per customer and parse target month
+	// Initialize calendars per customer
 	calendars := getCustomerCalendars(cfg.Customers)
-	year, month := parseMonthYear()
 
 	// Distribute workdays among customers (round-robin, respecting each customer's holidays)
 	numDays := daysInMonth(year, month)
