@@ -28,7 +28,7 @@ import (
 
 const (
 	// Version
-	version = "1.3.0"
+	version = "1.4.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
@@ -252,20 +252,25 @@ func main() {
 	kmFooter := buildDocumentFooter(totalKmCost)
 	verpFooter := buildDocumentFooter(verpflegungRate * float64(totalWorkdays))
 
-	// Generate PDFs
+	// Generate PDFs in memory
 	kmFilename := fmt.Sprintf("%02d_%d_Reisekosten_Kilometergelderstattung.pdf", month, year)
 	verpFilename := fmt.Sprintf("%02d_%d_Reisekosten_Verpflegungsmehraufwand.pdf", month, year)
 
-	createPDF(kmHeader, kmBlocks, kmFooter, kmFilename)
-	createPDF(verpHeader, verpBlocks, verpFooter, verpFilename)
-
-	// Send via email
-	subject := fmt.Sprintf("Reisekostenabrechnung %02d/%d", month, year)
-	if err := sendEmail(cfg, subject, kmFilename, verpFilename); err != nil {
+	kmData, err := createPDF(kmHeader, kmBlocks, kmFooter)
+	if err != nil {
+		panic(err)
+	}
+	verpData, err := createPDF(verpHeader, verpBlocks, verpFooter)
+	if err != nil {
 		panic(err)
 	}
 
-	// Clean up local files
-	os.Remove(kmFilename)
-	os.Remove(verpFilename)
+	// Send via email
+	subject := fmt.Sprintf("Reisekostenabrechnung %02d/%d", month, year)
+	if err := sendEmail(cfg, subject,
+		Attachment{Filename: kmFilename, Data: kmData},
+		Attachment{Filename: verpFilename, Data: verpData},
+	); err != nil {
+		panic(err)
+	}
 }

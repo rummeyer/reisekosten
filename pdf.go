@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"strings"
 
 	"github.com/go-pdf/fpdf"
@@ -10,9 +11,9 @@ import (
 // PDF Generation
 // ---------------------------------------------------------------------------
 
-// createPDF generates a PDF document with smart page breaks.
+// createPDF generates a PDF document with smart page breaks and returns it as bytes.
 // Blocks are never split across pages - if a block doesn't fit, a new page is added.
-func createPDF(header string, blocks []string, footer string, filename string) {
+func createPDF(header string, blocks []string, footer string) ([]byte, error) {
 	pdf := fpdf.New("P", "mm", "A4", "")
 	pdf.SetFont("Courier", "", pdfFontSize)
 	pdf.AddPage()
@@ -45,7 +46,9 @@ func createPDF(header string, blocks []string, footer string, filename string) {
 	}
 	pdf.MultiCell(cellWidth, pdfLineHeight, footer, "", "", false)
 
-	if err := pdf.OutputFileAndClose(filename); err != nil {
-		panic(err)
+	var buf bytes.Buffer
+	if err := pdf.Output(&buf); err != nil {
+		return nil, err
 	}
+	return buf.Bytes(), nil
 }
