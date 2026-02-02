@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Abrechnungszeitraum now shows actual date range (first to last workday) instead of month/year
+- PDF header shows report type (KILOMETERGELDERSTATTUNG/VERPFLEGUNGSMEHRAUFWAND) with month/year, centered
 
 ## [1.7.0] - 2026-02-02
 
