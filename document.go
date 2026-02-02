@@ -54,19 +54,21 @@ func rightAlign(s string, width int) string {
 // ---------------------------------------------------------------------------
 
 // buildDocumentHeader creates a professional header section for sevDesk compatibility.
-func buildDocumentHeader(year int, month time.Month, dateString, title string) string {
+func buildDocumentHeader(year int, month time.Month, dateString, periodStart, periodEnd, title string) string {
 	var b strings.Builder
 
 	// Title block
+	header := fmt.Sprintf("%s %02d/%d", strings.ToUpper(title), month, year)
+	padding := (lineWidth - len(header)) / 2
 	b.WriteString(lineDouble + "\n")
-	b.WriteString("                         REISEKOSTENABRECHNUNG\n")
+	b.WriteString(fmt.Sprintf("%s%s\n", strings.Repeat(" ", padding), header))
 	b.WriteString(lineDouble + "\n\n")
 
 	// Document metadata (sevDesk-friendly labels)
 	b.WriteString(fmt.Sprintf("Beleg-Nr.:            %s\n", documentID(year, month)))
 	b.WriteString(fmt.Sprintf("Datum:                %s\n", dateString))
 	b.WriteString(fmt.Sprintf("Rechnungsart:         Reisekosten - %s\n", title))
-	b.WriteString(fmt.Sprintf("Abrechnungszeitraum:  %02d/%d\n", month, year))
+	b.WriteString(fmt.Sprintf("Abrechnungszeitraum:  %s - %s\n", periodStart, periodEnd))
 	b.WriteString("\n")
 
 	return b.String()

@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version
-	version = "1.7.0"
+	version = "1.8.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
@@ -267,7 +267,7 @@ func main() {
 	numDays := daysInMonth(year, month)
 	customerDays := make(map[int][]string, len(cfg.Customers))
 	customerIdx := 0
-	var lastDateString string
+	var firstDateString, lastDateString string
 	totalWorkdays := 0
 
 	for day := 1; day <= numDays; day++ {
@@ -277,6 +277,9 @@ func main() {
 		if isWorkday(calendars[customerIdx], date, cfg.ChristmasWeekOffEnabled()) {
 			dateString := formatDate(year, month, day)
 			customerDays[customerIdx] = append(customerDays[customerIdx], dateString)
+			if firstDateString == "" {
+				firstDateString = dateString
+			}
 			lastDateString = dateString
 			totalWorkdays++
 			customerIdx = (customerIdx + 1) % len(cfg.Customers)
@@ -309,8 +312,8 @@ func main() {
 	}
 
 	// Build document headers
-	kmHeader := buildDocumentHeader(year, month, lastDateString, "Kilometergelderstattung")
-	verpHeader := buildDocumentHeader(year, month, lastDateString, "Verpflegungsmehraufwand")
+	kmHeader := buildDocumentHeader(year, month, lastDateString, firstDateString, lastDateString, "Kilometergelderstattung")
+	verpHeader := buildDocumentHeader(year, month, lastDateString, firstDateString, lastDateString, "Verpflegungsmehraufwand")
 
 	// Build document footers
 	kmFooter := buildDocumentFooter(totalKmCost)
