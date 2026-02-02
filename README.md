@@ -1,6 +1,6 @@
 # Reisekosten
 
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
@@ -92,6 +92,12 @@ cp config.example.json config.json
 |-------|-------------|
 | `from` | Sender email address |
 | `to` | Recipient email address |
+
+#### General Settings (Optional)
+
+| Field | Description |
+|-------|-------------|
+| `christmasWeekOff` | Optional. Exclude Dec 24 and Dec 27-31 as week off (default: `true`). Set to `false` to only exclude public holidays. |
 
 #### Customers
 

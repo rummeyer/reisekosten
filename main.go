@@ -28,7 +28,7 @@ import (
 
 const (
 	// Version
-	version = "1.4.0"
+	version = "1.5.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
@@ -70,9 +70,16 @@ type Customer struct {
 }
 
 type Config struct {
-	SMTP      SMTPConfig  `json:"smtp"`
-	Email     EmailConfig `json:"email"`
-	Customers []Customer  `json:"customers"`
+	SMTP             SMTPConfig  `json:"smtp"`
+	Email            EmailConfig `json:"email"`
+	Customers        []Customer  `json:"customers"`
+	ChristmasWeekOff *bool       `json:"christmasWeekOff,omitempty"` // exclude Dec 24, 27-31 (default: true)
+}
+
+// ChristmasWeekOffEnabled returns whether the Christmas/New Year week off is enabled.
+// Defaults to true if not specified.
+func (c *Config) ChristmasWeekOffEnabled() bool {
+	return c.ChristmasWeekOff == nil || *c.ChristmasWeekOff
 }
 
 // loadConfig reads and parses the JSON configuration file.
@@ -143,14 +150,14 @@ func getCustomerCalendars(customers []Customer) []*cal.BusinessCalendar {
 }
 
 // isWorkday checks if a date is a valid workday for expense reporting.
-// Excludes weekends, holidays, and special December dates (24th, 27th-31st).
-func isWorkday(c *cal.BusinessCalendar, date time.Time) bool {
+// Excludes weekends, holidays, and optionally Christmas/New Year week off (Dec 24, 27-31).
+func isWorkday(c *cal.BusinessCalendar, date time.Time, christmasWeekOff bool) bool {
 	if !c.IsWorkday(date) {
 		return false
 	}
 
-	// Exclude special December dates
-	if date.Month() == 12 {
+	// Exclude Christmas/New Year week off (Dec 24 + Dec 27-31)
+	if christmasWeekOff && date.Month() == 12 {
 		day := date.Day()
 		if day == 24 || (day >= 27 && day <= 31) {
 			return false
@@ -210,7 +217,7 @@ func main() {
 		date := time.Date(year, month, day, 0, 0, 0, 0, time.UTC)
 
 		// Check if workday for current customer's province
-		if isWorkday(calendars[customerIdx], date) {
+		if isWorkday(calendars[customerIdx], date, cfg.ChristmasWeekOffEnabled()) {
 			dateString := formatDate(year, month, day)
 			customerDays[customerIdx] = append(customerDays[customerIdx], dateString)
 			lastDateString = dateString
