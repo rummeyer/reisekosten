@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2026-02-13
+
+### Added
+- Comprehensive unit test suite (39 test cases across 19 test functions)
+- `document_test.go` - Tests for formatting helpers and document builders
+- `main_test.go` - Tests for config loading, calendar logic, and PDF generation
+
 ## [1.9.0] - 2026-02-13
 
 ### Changed

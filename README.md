@@ -1,6 +1,6 @@
 # Reisekosten
 
-[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.10.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
@@ -184,6 +184,12 @@ The following dates are automatically excluded:
   - Days between Christmas and New Year (December 27-31)
 
   This reflects the common practice in Germany where many businesses close or employees take time off during this period. December 25-26 are already public holidays (Weihnachten). Set `christmasWeekOff` to `false` if you work during these days and only want public holidays excluded.
+
+## Testing
+
+```bash
+CGO_ENABLED=0 go test ./... -v
+```
 
 ## Output
 

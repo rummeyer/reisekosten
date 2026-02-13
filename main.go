@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version
-	version = "1.9.0"
+	version = "1.10.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
