@@ -6,6 +6,7 @@ require (
 	github.com/go-gomail/gomail v0.0.0-20160411212932-81ebce5c23df
 	github.com/go-pdf/fpdf v0.9.0
 	github.com/rickar/cal/v2 v2.1.18
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (

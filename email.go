@@ -32,6 +32,6 @@ func sendEmail(cfg *Config, subject string, attachments ...Attachment) error {
 		}))
 	}
 
-	dialer := gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.Username, cfg.SMTP.Password)
+	dialer := gomail.NewDialer(cfg.SMTP.Host, cfg.SMTP.Port, cfg.SMTP.User, cfg.SMTP.Pass)
 	return dialer.DialAndSend(msg)
 }

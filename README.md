@@ -1,6 +1,6 @@
 # Reisekosten
 
-[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.9.0-blue.svg)](CHANGELOG.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 A command-line tool for generating monthly German travel expense reports (Reisekostenabrechnung).
@@ -36,8 +36,8 @@ go build -o reisekosten
 ./reisekosten 12/2025
 
 # Use custom config file
-./reisekosten --config /path/to/config.json
-./reisekosten --config /path/to/config.json 2/2026
+./reisekosten --config /path/to/config.yaml
+./reisekosten --config /path/to/config.yaml 2/2026
 
 # Show version
 ./reisekosten --version
@@ -45,50 +45,45 @@ go build -o reisekosten
 
 ## Configuration
 
-Copy `config.example.json` to `config.json` and fill in your details:
+Copy `config.example.yaml` to `config.yaml` and fill in your details:
 
 ```bash
-cp config.example.json config.json
+cp config.example.yaml config.yaml
 ```
 
 ### Config File Search Path
 
-By default, the tool searches for `config.json` in the following order:
+By default, the tool searches for `config.yaml` in the following order:
 1. Current working directory
 2. Directory containing the executable
 
 Use `--config` to specify a custom path and skip the search:
 
 ```bash
-./reisekosten --config /path/to/my-config.json
+./reisekosten --config /path/to/my-config.yaml
 ```
 
 ### Configuration File Structure
 
-```json
-{
-  "smtp": {
-    "host": "smtp.example.com",
-    "port": 587,
-    "username": "your-smtp-username",
-    "password": "your-smtp-password"
-  },
-  "email": {
-    "from": "sender@example.com",
-    "to": "recipient@example.com"
-  },
-  "customers": [
-    {
-      "id": "1",
-      "name": "Client Company GmbH",
-      "from": "Origin City, Street (Your Company)",
-      "to": "Destination City, Street (Client Company)",
-      "reason": "Project work",
-      "distance": 50,
-      "province": "BW"
-    }
-  ]
-}
+```yaml
+smtp:
+  host: smtp.example.com
+  port: 587
+  user: your-smtp-username
+  pass: your-smtp-password
+
+email:
+  from: sender@example.com
+  to: recipient@example.com
+
+customers:
+  - id: "1"
+    name: Client Company GmbH
+    from: "Origin City, Street (Your Company)"
+    to: "Destination City, Street (Client Company)"
+    reason: Project work
+    distance: 50
+    province: BW
 ```
 
 ### Configuration Options
@@ -99,8 +94,8 @@ Use `--config` to specify a custom path and skip the search:
 |-------|-------------|
 | `host` | SMTP server hostname |
 | `port` | SMTP server port (typically 587 for TLS) |
-| `username` | SMTP authentication username |
-| `password` | SMTP authentication password |
+| `user` | SMTP authentication username |
+| `pass` | SMTP authentication password |
 
 #### Email Settings
 
@@ -158,27 +153,23 @@ If omitted or invalid, defaults to `BW` (Baden-Württemberg).
 
 When multiple customers are configured, workdays are distributed equally using round-robin assignment:
 
-```json
-"customers": [
-  {
-    "id": "1",
-    "name": "Client A GmbH",
-    "from": "Neuhausen, Amselweg (Your Company GmbH)",
-    "to": "Stuttgart, Hauptstr. (Client A GmbH)",
-    "reason": "Projektarbeit",
-    "distance": 42,
-    "province": "BW"
-  },
-  {
-    "id": "2",
-    "name": "Client B GmbH",
-    "from": "Neuhausen, Amselweg (Your Company GmbH)",
-    "to": "Munich, Bahnhofstr. (Client B GmbH)",
-    "reason": "Beratung",
-    "distance": 120,
-    "province": "BY"
-  }
-]
+```yaml
+customers:
+  - id: "1"
+    name: Client A GmbH
+    from: "Neuhausen, Amselweg (Your Company GmbH)"
+    to: "Stuttgart, Hauptstr. (Client A GmbH)"
+    reason: Projektarbeit
+    distance: 42
+    province: BW
+
+  - id: "2"
+    name: Client B GmbH
+    from: "Neuhausen, Amselweg (Your Company GmbH)"
+    to: "Munich, Bahnhofstr. (Client B GmbH)"
+    reason: Beratung
+    distance: 120
+    province: BY
 ```
 
 With 20 workdays and 2 customers, each customer gets 10 days. Mileage is calculated per customer based on their distance.

@@ -10,7 +10,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -21,6 +20,7 @@ import (
 
 	"github.com/rickar/cal/v2"
 	"github.com/rickar/cal/v2/de"
+	"gopkg.in/yaml.v3"
 )
 
 // ---------------------------------------------------------------------------
@@ -29,7 +29,7 @@ import (
 
 const (
 	// Version
-	version = "1.8.0"
+	version = "1.9.0"
 
 	// Reimbursement rates
 	kmRatePerKm     = 0.30 // EUR per kilometer
@@ -48,33 +48,33 @@ var monthArgRegex = regexp.MustCompile(`^(0?[1-9]|1[0-2])/(20[0-9]{2})$`)
 // ---------------------------------------------------------------------------
 
 type SMTPConfig struct {
-	Host     string `json:"host"`
-	Port     int    `json:"port"`
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+	User string `yaml:"user"`
+	Pass string `yaml:"pass"`
 }
 
 type EmailConfig struct {
-	From string `json:"from"`
-	To   string `json:"to"`
+	From string `yaml:"from"`
+	To   string `yaml:"to"`
 }
 
 // Customer represents a client with trip details.
 type Customer struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	From     string `json:"from"`
-	To       string `json:"to"`
-	Reason   string `json:"reason"`
-	Distance int    `json:"distance"` // one-way distance in km
-	Province string `json:"province"` // German state abbreviation (e.g., "BW", "BY")
+	ID       string `yaml:"id"`
+	Name     string `yaml:"name"`
+	From     string `yaml:"from"`
+	To       string `yaml:"to"`
+	Reason   string `yaml:"reason"`
+	Distance int    `yaml:"distance"` // one-way distance in km
+	Province string `yaml:"province"` // German state abbreviation (e.g., "BW", "BY")
 }
 
 type Config struct {
-	SMTP             SMTPConfig  `json:"smtp"`
-	Email            EmailConfig `json:"email"`
-	Customers        []Customer  `json:"customers"`
-	ChristmasWeekOff *bool       `json:"christmasWeekOff,omitempty"` // exclude Dec 24, 27-31 (default: true)
+	SMTP             SMTPConfig  `yaml:"smtp"`
+	Email            EmailConfig `yaml:"email"`
+	Customers        []Customer  `yaml:"customers"`
+	ChristmasWeekOff *bool       `yaml:"christmasWeekOff,omitempty"` // exclude Dec 24, 27-31 (default: true)
 }
 
 // ChristmasWeekOffEnabled returns whether the Christmas/New Year week off is enabled.
@@ -104,7 +104,7 @@ func findConfigFile(filename string) (string, error) {
 	return "", fmt.Errorf("config file %q not found in current directory or executable directory", filename)
 }
 
-// loadConfig reads and parses the JSON configuration file.
+// loadConfig reads and parses the YAML configuration file.
 // If configPath is non-empty, it uses that path directly.
 // Otherwise, it searches for the file in the current directory and executable directory.
 func loadConfig(filename, configPath string) (*Config, error) {
@@ -126,7 +126,7 @@ func loadConfig(filename, configPath string) (*Config, error) {
 	}
 
 	var cfg Config
-	if err := json.Unmarshal(data, &cfg); err != nil {
+	if err := yaml.Unmarshal(data, &cfg); err != nil {
 		return nil, fmt.Errorf("failed to parse config file: %w", err)
 	}
 
@@ -255,7 +255,7 @@ func main() {
 	configPath, year, month := parseArgs()
 
 	// Load configuration
-	cfg, err := loadConfig("config.json", configPath)
+	cfg, err := loadConfig("config.yaml", configPath)
 	if err != nil {
 		panic(err)
 	}
@@ -333,7 +333,7 @@ func main() {
 	}
 
 	// Send via email
-	subject := fmt.Sprintf("Reisekostenabrechnung %02d/%d", month, year)
+	subject := fmt.Sprintf("Deine Reisekostenabrechnung %02d/%d", month, year)
 	if err := sendEmail(cfg, subject,
 		Attachment{Filename: kmFilename, Data: kmData},
 		Attachment{Filename: verpFilename, Data: verpData},

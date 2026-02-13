@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2026-02-13
+
+### Changed
+- Switch configuration format from JSON to YAML (`config.json` -> `config.yaml`)
+- Rename SMTP config fields `username`/`password` to `user`/`pass`
+- Update email subject to "Deine Reisekostenabrechnung"
+
 ## [1.8.0] - 2026-02-02
 
 ### Changed
@@ -25,7 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Configurable `christmasWeekOff` option to exclude Dec 24, 27-31 (default: true)
-- Set to `false` in config.json to only exclude public holidays
+- Set to `false` in config to only exclude public holidays
 
 ## [1.4.0] - 2026-02-02
 
@@ -61,7 +68,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - Customer `distance` field for per-customer mileage calculation
 - Multiple customer support with round-robin day distribution
-- External configuration file (config.json)
+- External configuration file
 - Smart PDF page breaks (blocks never split across pages)
 
 ### Changed
